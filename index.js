@@ -29,6 +29,14 @@ function renderSearch() {
   const selectCategory = document.createElement("select");
   const categories = ["Movie", "Tv Show"];
 
+  const placeholder = document.createElement("option");
+  placeholder.innerText = "Select Category";
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+
+  selectCategory.append(placeholder);
+
   categories.forEach((category) => {
     const option = document.createElement("option");
     option.innerText = category;
@@ -41,6 +49,14 @@ function renderSearch() {
 
   const searchButton = document.createElement("button");
   searchButton.innerText = "Search";
+
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      const query = searchInput.value;
+      const type = selectCategory.value;
+      handleSearch(type, query, resultContainer);
+    }
+  });
 
   searchButton.addEventListener("click", () => {
     const query = searchInput.value;
@@ -64,6 +80,11 @@ const categories = {
 };
 
 async function handleSearch(type, query, container) {
+  if (!type) {
+    container.innerHTML = "<p>Please select a category.</p>";
+    return;
+  }
+
   const category = categories[type];
 
   if (!category) {
@@ -120,7 +141,7 @@ function renderMovieResults(container, data) {
     title.innerText = item.Title;
 
     const year = document.createElement("p");
-    year.innerText = `Year: ${item.Year}`;
+    year.innerText = item.Year;
 
     // s param does not return plot details
     // const plot = document.createElement("p");
