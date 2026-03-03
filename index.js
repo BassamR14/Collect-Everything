@@ -7,7 +7,7 @@ const data = {
   tv: "bla",
 };
 
-//Reusable function to clear main(content container)
+//Function to clear main(content container)
 function clearContent() {
   content.innerHTML = "";
 }
@@ -15,7 +15,7 @@ function clearContent() {
 //Functions to render each tab
 
 function renderSearch() {
-  content.innerHTML = "";
+  clearContent();
 
   const title = document.createElement("h1");
   title.innerText = "Search";
