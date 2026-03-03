@@ -24,6 +24,7 @@ function renderSearch() {
   searchContainer.classList.add("flex-h");
 
   const resultContainer = document.createElement("div");
+  resultContainer.classList.add("result-container");
 
   const selectCategory = document.createElement("select");
   const categories = ["Movie", "Tv Show"];
@@ -51,41 +52,56 @@ function renderSearch() {
   content.append(title, searchContainer, resultContainer);
 }
 
-//To make handleSearch Dry for movie + tv show search
-function getOMDbType(category) {
-  if (category === "movie") return "movie";
-  if (category === "tv show") return "series";
-  return "";
-}
+const categories = {
+  movie: {
+    search: searchOMDb,
+    render: renderMovieResults,
+  },
+  "tv show": {
+    search: searchOMDb,
+    render: renderMovieResults,
+  },
+};
 
-//Function to search API depending on which category is selected
 async function handleSearch(type, query, container) {
-  const omdbType = getOMDbType(type);
-  if (!omdbType) return;
+  const category = categories[type];
 
-  let params = new URLSearchParams();
-  params.set("apikey", "4473d6a0");
-  params.set("t", query.trim());
-  params.set("type", omdbType);
-
-  let myURL = "https://www.omdbapi.com/?" + params.toString();
+  if (!category) {
+    container.innerHTML = "<p>No handler found for this category.</p>";
+    return;
+  }
 
   try {
-    const response = await axios.get(myURL);
-    const responseData = response.data;
+    const data = await category.search(query, type);
 
     console.log("Query:", query, "Category:", type);
-    console.log("Response:", responseData);
+    console.log("Response:", data);
 
-    renderResults(container, responseData);
+    category.render(container, data);
   } catch (error) {
     container.innerHTML = "<p>Something went wrong with the search.</p>";
     console.error(error);
   }
 }
 
+//Functions for each API/Category
+async function searchOMDb(query, type) {
+  const omdbType = type === "movie" ? "movie" : "series";
+
+  let params = new URLSearchParams();
+  params.set("apikey", "4473d6a0");
+  params.set("s", query.trim());
+  params.set("type", omdbType);
+
+  const url = "https://www.omdbapi.com/?" + params.toString();
+
+  const response = await axios.get(url);
+  const responseData = response.data;
+  return responseData;
+}
+
 //Render Results of search
-function renderResults(container, data) {
+function renderMovieResults(container, data) {
   container.innerHTML = "";
 
   if (data.Response === "False") {
@@ -95,27 +111,44 @@ function renderResults(container, data) {
     return;
   }
 
-  const card = document.createElement("div");
-  card.classList.add("card");
+  data.Search.forEach((item) => {
+    console.log(item);
+    const card = document.createElement("div");
+    card.classList.add("card");
 
-  const title = document.createElement("h2");
-  title.innerText = data.Title;
+    const title = document.createElement("h2");
+    title.innerText = item.Title;
 
-  const year = document.createElement("p");
-  year.innerText = `Year: ${data.Year}`;
+    const year = document.createElement("p");
+    year.innerText = `Year: ${item.Year}`;
 
-  const plot = document.createElement("p");
-  plot.innerText = data.Plot;
+    // s param does not return plot details
+    // const plot = document.createElement("p");
+    // plot.innerText = item.Plot;
 
-  if (data.Poster && data.Poster !== "N/A") {
-    const poster = document.createElement("img");
-    poster.src = data.Poster;
-    poster.alt = data.Title;
-    card.append(poster);
-  }
+    if (item.Poster && item.Poster !== "N/A") {
+      const poster = document.createElement("img");
+      poster.src = item.Poster;
+      poster.alt = item.Title;
+      card.append(poster);
+    }
 
-  card.append(title, year, plot);
-  container.append(card);
+    const statusButtons = document.createElement("div");
+    statusButtons.classList.add("button-group");
+
+    const wantToSeeBtn = document.createElement("button");
+    wantToSeeBtn.innerText = "Want To Watch";
+
+    const seenBtn = document.createElement("button");
+    seenBtn.innerText = "Watched";
+
+    const ownedBtn = document.createElement("button");
+    ownedBtn.innerText = "Owned";
+
+    statusButtons.append(wantToSeeBtn, seenBtn, ownedBtn);
+    card.append(title, year, statusButtons);
+    container.append(card);
+  });
 }
 
 //Map for render functions
