@@ -169,6 +169,74 @@ function renderMovieResults(container, data) {
     statusButtons.append(wantToSeeBtn, seenBtn, ownedBtn);
     card.append(title, year, statusButtons);
     container.append(card);
+
+    card.addEventListener("click", async () => {
+      const responseData = await getSpecificItem(item.imdbID);
+      renderSpecificItem(responseData);
+    });
+  });
+}
+
+async function getSpecificItem(imdbID) {
+  let params = new URLSearchParams();
+  params.set("apikey", "4473d6a0");
+  params.set("i", imdbID);
+
+  const url = "https://www.omdbapi.com/?" + params.toString();
+
+  const response = await axios.get(url);
+  const responseData = response.data;
+  return responseData;
+}
+
+function renderSpecificItem(data) {
+  content.style.display = "none";
+
+  const modalContainer = document.createElement("div");
+  modalContainer.classList.add("modal-container");
+  const modal = document.createElement("div");
+  modal.classList.add("modal");
+
+  const backBtn = document.createElement("button");
+  backBtn.classList.add("back-btn");
+  backBtn.innerText = "Go Back";
+
+  const title = document.createElement("h2");
+  title.innerText = data.Title;
+
+  const year = document.createElement("p");
+  year.innerText = data.Year;
+
+  const plot = document.createElement("p");
+  plot.innerText = data.Plot;
+
+  if (data.Poster && data.Poster !== "N/A") {
+    const poster = document.createElement("img");
+    poster.src = data.Poster;
+    poster.alt = data.Title;
+    modal.append(poster);
+  }
+
+  const statusButtons = document.createElement("div");
+  statusButtons.classList.add("button-group");
+
+  const wantToSeeBtn = document.createElement("button");
+  wantToSeeBtn.innerText = "Want To Watch";
+
+  const seenBtn = document.createElement("button");
+  seenBtn.innerText = "Watched";
+
+  const ownedBtn = document.createElement("button");
+  ownedBtn.innerText = "Owned";
+
+  statusButtons.append(wantToSeeBtn, seenBtn, ownedBtn);
+  modal.append(backBtn, title, year, plot, statusButtons);
+  modalContainer.append(modal);
+  document.body.append(modalContainer);
+
+  backBtn.addEventListener("click", () => {
+    modalContainer.remove();
+    content.style.display = "block";
   });
 }
 
