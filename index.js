@@ -181,6 +181,7 @@ async function getSpecificItem(imdbID) {
   let params = new URLSearchParams();
   params.set("apikey", "4473d6a0");
   params.set("i", imdbID);
+  params.set("plot", "full");
 
   const url = "https://www.omdbapi.com/?" + params.toString();
 
